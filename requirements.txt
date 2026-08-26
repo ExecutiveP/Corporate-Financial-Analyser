@@ -1,2 +1,6 @@
 streamlit
 pandas
+numpy
+google-generativeai
+PyPDF2
+plotly
