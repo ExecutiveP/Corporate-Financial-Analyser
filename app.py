@@ -11,7 +11,7 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(page_title="Financial Analyser",
-                   page_icon="📊", layout="wide")
+                   page_icon="💠", layout="wide")
 
 # --- 2. SIDEBAR CONTROLS ---
 with st.sidebar:
