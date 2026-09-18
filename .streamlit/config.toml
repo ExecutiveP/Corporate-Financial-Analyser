@@ -1,0 +1,15 @@
+[theme]
+# The main accent colour (used for charts and primary elements)
+primaryColor = "#004aad"
+
+# The main background colour of the dashboard
+backgroundColor = "#0a0e17"
+
+# The background colour of the sidebar and expander boxes
+secondaryBackgroundColor = "#151b2b"
+
+# The text colour
+textColor = "#ffffff"
+
+# The font style
+font = "sans serif"
