@@ -11,21 +11,65 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(page_title="Financial Analyser",
-                   page_icon="📊", layout="wide")
+                   page_icon="💠", layout="wide")
 
 # --- 2. SIDEBAR CONTROLS ---
 with st.sidebar:
-    st.image("logo.png", use_container_width=True)
-    st.header("⚙️ Dashboard Controls")
-    st.write("Upload your corporate data below to generate the automated report.")
-    uploaded_file = st.file_uploader("Upload financial data (CSV)", type="csv")
+    st.header("⚙️ Control Panel")
+    st.markdown("Select how you would like to import your corporate data.")
+
+    # Using a selectbox with index=None makes it look modern and forces a neutral starting state
+    data_source = st.selectbox(
+        "Data Input Method",
+        ["Upload CSV", "AI PDF Extraction"],
+        index=None,
+        placeholder="Choose a method..."
+    )
 
     st.divider()
-    st.info("💡 **Tip:** Ensure your CSV or PDF contains the most recent 5 years of historical data for optimal trend mapping.")
 
-# --- 3. MAIN DASHBOARD HEADER ---
-st.title("📊 Financial Statement Analyser")
-st.write("Welcome to your automated historical trend analysis tool.")
+    uploaded_file = None
+    pdf_file = None
+
+    # Option A: CSV Upload UI
+    if data_source == "Upload CSV":
+        uploaded_file = st.file_uploader(
+            "Upload financial data (CSV)", type="csv")
+        st.caption(
+            "💡 **Tip:** Ensure your CSV contains the most recent 5 years of historical data for optimal trend mapping.")
+
+    # Option B: PDF Upload UI
+    elif data_source == "AI PDF Extraction":
+        st.caption("💡 **Pro Tip:** Annual reports are huge! Check the document's table of contents to find the exact pages for the 'Primary Financial Statements' (Income Statement, Balance Sheet, Cash Flow). Enter that specific 5 to 10 page range below to speed up processing and prevent AI limits.")
+
+        col1, col2 = st.columns(2)
+        start_page = col1.number_input(
+            "Start Page", min_value=1, value=1, step=1)
+        end_page = col2.number_input("End Page", min_value=1, value=10, step=1)
+
+        pdf_file = st.file_uploader("Upload Annual Report (PDF)", type="pdf")
+
+
+# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
+# Note: This HTML is explicitly formatted flush-left to prevent Streamlit from rendering it as a Markdown code block.
+# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
+# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
+# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
+# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
+# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
+logo_html = """<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+<svg width="85" height="85" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<rect x="10" y="10" width="55" height="55" fill="none" stroke="#8BC34A" stroke-width="12" />
+<rect x="40" y="40" width="50" height="50" fill="#8BC34A" />
+</svg>
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.1;">
+<div style="font-size: 32px; font-weight: 800; color: var(--text-color); letter-spacing: 1px;">CORPORATE</div>
+<div style="font-size: 26px; font-weight: 300; color: var(--text-color); opacity: 0.8; letter-spacing: 2px;">FINANCIAL</div>
+<div style="font-size: 22px; font-weight: 600; color: #8BC34A; letter-spacing: 2px;">ANALYSER</div>
+</div>
+</div>"""
+
+st.markdown(logo_html, unsafe_allow_html=True)
 st.divider()
 
 # --- DATA TRAFFIC CONTROLLER ---
@@ -34,16 +78,16 @@ data = None
 if 'financial_data' in st.session_state:
     data = st.session_state['financial_data']
     st.sidebar.success("✅ Using AI Extracted Data!")
-    if st.sidebar.button("Clear AI Data"):
+    if st.sidebar.button("Clear AI Data", use_container_width=True):
         del st.session_state['financial_data']
         st.rerun()
 
 elif uploaded_file is not None:
     data = pd.read_csv(uploaded_file, index_col='Line_Item')
 
+
 # --- MAIN DASHBOARD LOGIC ---
 if data is not None:
-
     # Sort columns chronologically so charts draw correctly left-to-right
     data = data.sort_index(axis=1)
 
@@ -429,35 +473,16 @@ if data is not None:
             ocf_to_cl, "OCF to Current Liabilities"), use_container_width=True)
         st.info(interpret_ocf_trend(ocf_to_cl, years))
 
-else:
-    st.info("Please upload a multi-year CSV file or Annual Report PDF to generate your analysis.")
-
-# --- 5. AI PDF EXTRACTION ENGINE ---
-st.divider()
-st.header("🤖 AI-Powered Annual Report Extraction")
-
-# Clearer instructions for the user
-st.info("💡 **Pro Tip:** If your document has more than 20 pages, please specify the exact page range where the financial statements (Income Statement, Balance Sheet, Cash Flow) are located. This saves processing time and prevents the AI from hitting token limits on massive reports!")
-
-# Smart Page Range Selector
-col1, col2 = st.columns(2)
-start_page = col1.number_input(
-    "Start Page (e.g., 27)", min_value=1, value=1, step=1)
-end_page = col2.number_input(
-    "End Page (e.g., 30)", min_value=1, value=20, step=1)
-
-pdf_file = st.file_uploader("Upload Annual Report (PDF)", type="pdf")
-
-if pdf_file is not None and 'financial_data' not in st.session_state:
+# --- 5. AI PDF EXTRACTION ENGINE (Triggers if PDF uploaded but data not processed yet) ---
+elif pdf_file is not None and 'financial_data' not in st.session_state:
+    st.header("🤖 Processing Annual Report...")
     with st.spinner(f"The AI is reading pages {start_page} to {end_page}. This might take a minute..."):
         pdf_reader = PyPDF2.PdfReader(pdf_file)
         pdf_text = ""
 
-        # Safely handle page limits (Python uses 0-based indexing)
         start_idx = int(max(0, start_page - 1))
         end_idx = int(min(len(pdf_reader.pages), end_page))
 
-        # Only read the specific pages the user asked for
         for i in range(start_idx, end_idx):
             page = pdf_reader.pages[i]
             if page.extract_text():
@@ -526,3 +551,36 @@ if pdf_file is not None and 'financial_data' not in st.session_state:
         except Exception as e:
             st.error(f"The AI returned formatting we couldn't read: {e}")
             st.code(response.text)
+
+# --- 6. PROFESSIONAL LANDING PAGE (Displays when no data is loaded) ---
+else:
+    st.markdown("### Welcome to your automated historical trend analysis tool.")
+    st.markdown("This application transforms raw financial statements into actionable corporate insights, aligned with the latest reporting standards (including IFRS 18).")
+
+    st.divider()
+
+    # 1. Full-width Analytics Banner
+    st.warning("**📈 Comprehensive Analytics**\n\nInstantly generate interactive trend charts, profitability ratios, DuPont analysis, liquidity, solvency, and working capital metrics to assess financial health using the following options below:")
+
+    st.write("")  # Adds a little vertical breathing room
+
+    # 2. Two-column layout for the input options
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.success("**Option A: Direct CSV Upload**\n\nUpload a pre-formatted multi-year CSV. The app instantly structures your historical data for the analytical engine, skipping the need for AI processing.")
+    with col2:
+        st.info("**Option B: AI PDF Extraction**\n\nAnnual reports are unstructured and terminology varies. Our Gemini AI engine reads the raw PDF, understands the context, and extracts standard line items automatically.")
+
+    st.divider()
+
+    # Dynamic neutral state messaging
+    if data_source == "Upload CSV":
+        st.markdown(
+            "#### 👈 Please upload your multi-year financial CSV in the sidebar to begin.")
+    elif data_source == "AI PDF Extraction":
+        st.markdown(
+            "#### 👈 Please select your page range and upload an Annual Report PDF in the sidebar.")
+    else:
+        st.markdown(
+            "#### 👈 Get started by choosing an input method in the sidebar.")

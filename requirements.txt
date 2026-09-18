@@ -1,6 +1,15 @@
+<<<<<<< HEAD
+streamlit
+pandas
+numpy
+plotly
+PyPDF2
+google-generativeai
+=======
 streamlit
 pandas
 numpy
 google-generativeai
 PyPDF2
 plotly
+>>>>>>> 921a89a5e5ecfa1857b9ed24473f4e5d3dfdee2e
