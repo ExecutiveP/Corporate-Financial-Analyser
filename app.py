@@ -32,6 +32,7 @@ with st.sidebar:
     pdf_file = None
 
     # Option A: CSV Upload UI
+    # Option A: CSV Upload UI
     if data_source == "Upload CSV":
         uploaded_file = st.file_uploader(
             "Upload financial data (CSV)", type="csv")
@@ -40,7 +41,7 @@ with st.sidebar:
 
     # Option B: PDF Upload UI
     elif data_source == "AI PDF Extraction":
-        st.caption("💡 **Pro Tip:** Annual reports are huge! Check the document's table of contents to find the exact pages for the 'Primary Financial Statements' (Income Statement, Balance Sheet, Cash Flow). Enter that specific 5 to 10 page range below to speed up processing and prevent AI limits.")
+        st.caption("💡 **Pro Tip:** Annual reports are huge! Check the document's table of contents to find the exact pages for the 'Primary Financial Statements' (Income Statement, Balance Sheet, Cash Flow). Enter that specific 5 to 10 page range below to speed up processing and prevent AI limits. **Note: Use the absolute page number from your PDF viewer (e.g., 29 of 150), not the printed number at the bottom of the page.**")
 
         col1, col2 = st.columns(2)
         start_page = col1.number_input(
@@ -50,12 +51,6 @@ with st.sidebar:
         pdf_file = st.file_uploader("Upload Annual Report (PDF)", type="pdf")
 
 
-# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
-# Note: This HTML is explicitly formatted flush-left to prevent Streamlit from rendering it as a Markdown code block.
-# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
-# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
-# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
-# --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
 # --- 3. MAIN DASHBOARD HEADER (CUSTOM SVG LOGO) ---
 logo_html = """<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
 <svg width="85" height="85" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -383,6 +378,8 @@ if data is not None:
         st.header(f"Financial Health Dashboard ({len(years)}-Year Trend)")
 
         st.header("1. Liquidity Analysis", divider="blue")
+
+        st.subheader("Current Ratio")
         cr_cols = st.columns(len(years))
         for i, year in enumerate(years):
             cr_cols[i].metric(
@@ -391,6 +388,7 @@ if data is not None:
             current_ratio, "Current Ratio Trend"), use_container_width=True)
         st.info(interpret_current_ratio_trend(current_ratio, years))
 
+        st.subheader("Quick Ratio")
         qr_cols = st.columns(len(years))
         for i, year in enumerate(years):
             qr_cols[i].metric(
@@ -401,76 +399,88 @@ if data is not None:
         st.divider()
 
         st.header("2. Efficiency & Working Capital", divider="blue")
+
+        st.subheader("Cash Conversion Cycle (Days)")
         ccc_cols = st.columns(len(years))
         for i, year in enumerate(years):
             ccc_cols[i].metric(label=f"{year}", value=fmt_whole(ccc[year]))
         st.plotly_chart(create_chart(
-            ccc, "Cash Conversion Cycle (Days)"), use_container_width=True)
+            ccc, "Cash Conversion Cycle Trend"), use_container_width=True)
         st.info(interpret_ccc_trend(ccc, years))
         st.divider()
 
         st.header("3. Solvency Analysis", divider="blue")
+
+        st.subheader("Debt-to-Equity Ratio")
         dte_cols = st.columns(len(years))
         for i, year in enumerate(years):
             dte_cols[i].metric(
                 label=f"{year}", value=fmt_num(debt_to_equity[year]))
         st.plotly_chart(create_chart(
-            debt_to_equity, "Debt-to-Equity Ratio"), use_container_width=True)
+            debt_to_equity, "Debt-to-Equity Trend"), use_container_width=True)
         st.info(interpret_dte_trend(debt_to_equity, years))
         st.divider()
 
         st.header("4. Profitability Analysis", divider="blue")
+
+        st.subheader("Gross Profit Margin")
         gp_cols = st.columns(len(years))
         for i, year in enumerate(years):
             gp_cols[i].metric(
                 label=f"{year}", value=fmt_num(gp_margin[year], True))
         st.plotly_chart(create_chart(
-            gp_margin, "Gross Profit Margin (%)"), use_container_width=True)
+            gp_margin, "Gross Profit Margin Trend"), use_container_width=True)
         st.info(interpret_gp_trend(gp_margin, years))
         st.divider()
 
         st.header("5. DuPont Analysis (Return on Equity)", divider="blue")
+
+        st.subheader("Implied ROE")
         roe_cols = st.columns(len(years))
         for i, year in enumerate(years):
             roe_cols[i].metric(label=f"{year}", value=fmt_num(roe[year], True))
-        st.plotly_chart(create_chart(roe, "Implied ROE (%)"),
+        st.plotly_chart(create_chart(roe, "Implied ROE Trend"),
                         use_container_width=True)
         st.info(interpret_dupont_trend(roe, years))
         st.divider()
 
         st.header("6. Market & Valuation Analysis", divider="blue")
+
+        st.subheader("Price-Earnings (P/E) Ratio")
         pe_cols = st.columns(len(years))
         for i, year in enumerate(years):
-            pe_cols[i].metric(
-                label=f"P/E Ratio ({year})", value=fmt_num(pe_ratio[year]))
+            pe_cols[i].metric(label=f"{year}", value=fmt_num(pe_ratio[year]))
         st.plotly_chart(create_chart(
-            pe_ratio, "Price-Earnings Multiple"), use_container_width=True)
+            pe_ratio, "Price-Earnings Trend"), use_container_width=True)
         st.info(interpret_pe_trend(pe_ratio, years))
 
+        st.subheader("Dividend Yield")
         dy_cols = st.columns(len(years))
         for i, year in enumerate(years):
-            dy_cols[i].metric(label=f"Div Yield ({year})", value=fmt_num(
+            dy_cols[i].metric(label=f"{year}", value=fmt_num(
                 dividend_yield[year], True))
         st.plotly_chart(create_chart(
-            dividend_yield, "Dividend Yield (%)"), use_container_width=True)
+            dividend_yield, "Dividend Yield Trend"), use_container_width=True)
         st.info(interpret_dividend_trend(dividend_yield, div_cover, years))
         st.divider()
 
         st.header("7. Cash Flow & Coverage Analysis", divider="blue")
+
+        st.subheader("Interest Coverage")
         ic_cols = st.columns(len(years))
         for i, year in enumerate(years):
             ic_cols[i].metric(
-                label=f"Interest Cover ({year})", value=fmt_num(interest_cover[year]))
+                label=f"{year}", value=fmt_num(interest_cover[year]))
         st.plotly_chart(create_chart(
-            interest_cover, "Interest Coverage Multiple"), use_container_width=True)
+            interest_cover, "Interest Coverage Trend"), use_container_width=True)
         st.info(interpret_ic_trend(interest_cover, years))
 
+        st.subheader("OCF to Current Liabilities")
         ocf_cols = st.columns(len(years))
         for i, year in enumerate(years):
-            ocf_cols[i].metric(
-                label=f"OCF to Liabilities ({year})", value=fmt_num(ocf_to_cl[year]))
+            ocf_cols[i].metric(label=f"{year}", value=fmt_num(ocf_to_cl[year]))
         st.plotly_chart(create_chart(
-            ocf_to_cl, "OCF to Current Liabilities"), use_container_width=True)
+            ocf_to_cl, "OCF to Current Liabilities Trend"), use_container_width=True)
         st.info(interpret_ocf_trend(ocf_to_cl, years))
 
 # --- 5. AI PDF EXTRACTION ENGINE (Triggers if PDF uploaded but data not processed yet) ---
@@ -491,16 +501,16 @@ elif pdf_file is not None and 'financial_data' not in st.session_state:
         model = genai.GenerativeModel('gemini-3.5-flash')
 
         prompt = f"""
-        You are a senior financial auditor extracting data from an IFRS-compliant corporate annual report. 
+        You are a senior financial auditor extracting data from an IFRS-compliant corporate annual report.
         Your job is to find the historical financial data for the most recent 3 to 5 years.
         Account for IFRS terminology variations (e.g., 'Turnover' vs 'Revenue').
-        
+
         CRITICAL INDUSTRY INSTRUCTION:
-        If this is an insurance, banking, or financial services company, you MUST map their specific terminology to the standard line items requested below. 
+        If this is an insurance, banking, or financial services company, you MUST map their specific terminology to the standard line items requested below.
         - For "Revenue", look for "Insurance Revenue", "Net Investment Income", or "Total Income".
         - For "Cost of Sales", look for "Insurance Service Expenses", "Claims Incurred", or "Interest Expense".
         - If a concept genuinely does not exist (like 'Inventory' for an insurer), extract it with a value of 0.
-        
+
         Extract the following line items and standardise their exact names in the 'Line_Item' column:
         - Revenue
         - Cost of Sales
@@ -526,31 +536,32 @@ elif pdf_file is not None and 'financial_data' not in st.session_state:
         - Total Equity
         - Number of Shares
         - Market Price per Share
-        
+
         Format the output STRICTLY as CSV text with the first column as 'Line_Item' and the subsequent columns as the years (e.g., 2025, 2024, 2023).
         Do NOT include any markdown formatting, conversational text, or explanations. Just the raw CSV data.
-        
+
         Here is the raw text from the report:
         {pdf_text}
         """
 
-        response = model.generate_content(prompt)
-        st.success("Extraction Complete!")
+    # This is now properly indented so it doesn't break the 'elif' block!
+    if st.button("Generate Financial Analysis"):
+        with st.spinner("Analyzing document... this may take a moment."):
+            response = model.generate_content(prompt)
+            st.success("Extraction Complete!")
 
-        ai_data_stream = io.StringIO(response.text)
-        try:
-            df = pd.read_csv(ai_data_stream)
-            df.set_index('Line_Item', inplace=True)
+            try:
+                ai_data_stream = io.StringIO(response.text)
+                df = pd.read_csv(ai_data_stream)
+                df.set_index('Line_Item', inplace=True)
 
-            st.write("### Extracted Financial Data")
-            st.dataframe(df)
+                st.markdown("### Extracted Financial Data")
+                st.dataframe(df)
+                st.session_state['financial_data'] = df
 
-            st.session_state['financial_data'] = df
-            st.rerun()
-
-        except Exception as e:
-            st.error(f"The AI returned formatting we couldn't read: {e}")
-            st.code(response.text)
+            except Exception as e:
+                st.error(f"The AI returned formatting we couldn't read: {e}")
+                st.code(response.text)
 
 # --- 6. PROFESSIONAL LANDING PAGE (Displays when no data is loaded) ---
 else:
